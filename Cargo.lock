@@ -828,6 +828,7 @@ name = "cryo_cli"
 version = "0.3.0"
 dependencies = [
  "anstyle",
+ "chrono",
  "clap_cryo",
  "color-print",
  "colored",

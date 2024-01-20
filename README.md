@@ -258,7 +258,8 @@ Block specification syntax
 - can use n values total             100:200/5 == 100 124 149 174 199
 
 Timestamp specification syntax
-- can use numbers                    --timestamp 5000 6000 7000
+- can use unix numbers               --timestamp 1700005000 1700006000 1700007000
+- can use timestamp formats          --timestamp 2024 2024-01 2024-01-01
 - can use ranges                     --timestamp 12M:13M 15M:16M
 - can use a parquet file             --timestamp ./path/to/file.parquet[:COLUMN_NAME]
 - can use multiple parquet files     --timestamp ./path/to/files/*.parquet[:COLUMN_NAME]

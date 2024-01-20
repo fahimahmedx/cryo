@@ -19,6 +19,7 @@ path = "src/main.rs"
 
 [dependencies]
 cryo_freeze = { version = "0.3.0", path = "../freeze" }
+chrono = "0.4"
 
 anstyle = { workspace = true }
 clap_cryo = { workspace = true }

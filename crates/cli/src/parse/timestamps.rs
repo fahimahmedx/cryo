@@ -7,6 +7,7 @@ use crate::{
 };
 
 use super::blocks::get_latest_block_number;
+use chrono::{TimeZone, Utc};
 
 pub(crate) async fn parse_timestamps(
     args: &Args,
@@ -251,6 +252,51 @@ async fn parse_timestamp_number(
         _ if timestamp_ref.ends_with('y') => {
             scale_timestamp_str_by_metric_unit(timestamp_ref, 86400 * 365)
         }
+        _ if timestamp_ref.len() == 4 => {
+            // year, ex. 2024
+            // convert to 2024-01-01 00:00:00 in UNIX timestamp
+
+            let year = timestamp_ref.parse::<i32>().map_err(|_e| {
+                ParseError::ParseError("Error parsing year".to_string())
+            })?;
+
+            let dt = Utc.with_ymd_and_hms(year, 1, 1, 0, 0, 0).unwrap();
+            Ok(dt.timestamp() as u64)
+        }
+        _ if timestamp_ref.len() == 7 && timestamp_ref.chars().nth(4).unwrap() == '-' => {
+            // year and month, ex. 2024-01
+            // convert to 2024-01-01 00:00:00 in UNIX timestamp
+            let parts: Vec<&str> = timestamp_ref.split('-').collect();
+            let year = parts[0].parse::<i32>().map_err(|_e| {
+                ParseError::ParseError("Error parsing year".to_string())
+            })?;
+
+            let month = parts[1].parse::<u32>().map_err(|_e| {
+                ParseError::ParseError("Error parsing month".to_string())
+            })?;
+
+            let dt = Utc.with_ymd_and_hms(year, month, 1, 0, 0, 0).unwrap();
+            Ok(dt.timestamp() as u64)
+        }
+        _ if timestamp_ref.len() == 10 && timestamp_ref.chars().nth(4).unwrap() == '-' && timestamp_ref.chars().nth(7).unwrap() == '-' => {
+            // YYYY-MM-DD, ex. 2024-01-01
+            // convert to 2024-01-01 00:00:00 in UNIX timestamp
+            let parts: Vec<&str> = timestamp_ref.split('-').collect();
+            let year = parts[0].parse::<i32>().map_err(|_e| {
+                ParseError::ParseError("Error parsing year".to_string())
+            })?;
+
+            let month = parts[1].parse::<u32>().map_err(|_e| {
+                ParseError::ParseError("Error parsing month".to_string())
+            })?;
+
+            let day = parts[2].parse::<u32>().map_err(|_e| {
+                ParseError::ParseError("Error parsing day".to_string())
+            })?;
+
+            let dt = Utc.with_ymd_and_hms(year, month, day, 0, 0, 0).unwrap();
+            Ok(dt.timestamp() as u64)
+        }
         _ => timestamp_ref
             .parse::<f64>()
             .map_err(|_e| ParseError::ParseError("Error parsing timestamp ref".to_string()))
@@ -427,6 +473,13 @@ mod tests {
                 .await
                 .unwrap(),
             1700000000
+        );
+
+        assert_eq!(
+            parse_timestamp_number("2024", RangePosition::None, source.clone())
+                .await
+                .unwrap(),
+            1704067200
         );
 
         assert_eq!(
